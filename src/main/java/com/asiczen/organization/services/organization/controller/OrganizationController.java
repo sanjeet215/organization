@@ -34,10 +34,10 @@ public class OrganizationController {
     @PostMapping("/org")
     @ResponseStatus(HttpStatus.CREATED)
     public OrganizationResponse createOrganization(@Valid @RequestBody OrganizationOnBoard request,
-                                                   @RequestHeader String Authorization) {
+                                                   @RequestHeader String authorization) {
 
         log.trace("Create organization method is invoked. --> {} ", request.toString());
-        return orgService.postNewOrganization(request, Authorization);
+        return orgService.postNewOrganization(request, authorization);
     }
 
     @PutMapping("/org")
@@ -73,6 +73,13 @@ public class OrganizationController {
     public Organization getOrganizationById(@Valid @PathVariable Long orgid) {
         return orgService.getOrganizationById(orgid);
     }
+
+    @GetMapping("/org/orgref/{orgRefName}")
+    @ResponseStatus(HttpStatus.OK)
+    public Organization getOrganizationByOrgReferenceName(@Valid @PathVariable String orgRefName) {
+        return orgService.getOrgByRefName(orgRefName);
+    }
+
 
     @GetMapping("/org/count")
     @ResponseStatus(HttpStatus.OK)

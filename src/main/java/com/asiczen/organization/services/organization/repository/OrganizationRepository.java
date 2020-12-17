@@ -10,14 +10,15 @@ import java.util.Optional;
 @Repository
 public interface OrganizationRepository extends JpaRepository<Organization, Long> {
 
-	Optional<Organization> findByorgRefName(String orgRefName);
+    Optional<Organization> findByorgRefName(String orgRefName);
 
-	Optional<Organization> findByorgId(Long orgId);
+    Optional<Organization> findByorgId(Long orgId);
 
-	boolean existsByorgRefName(String orgRefName);
+    boolean existsByorgRefName(String orgRefName);
 
-	Long countByStatus(boolean status);
+    Long countByStatus(boolean status);
 
-	Optional<Organization> findByorgRefNameAndOrgIdNot(String orgRefName, Long orgId);
+    Optional<Organization> findByorgRefNameAndOrgIdNot(String orgRefName, Long orgId);
+
 
 }

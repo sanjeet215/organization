@@ -13,7 +13,7 @@ import com.asiczen.organization.services.organization.request.OrganizationUpdate
 import com.asiczen.organization.services.organization.response.OrganizationResponse;
 import com.asiczen.organization.services.organization.response.UpdateOrganizationResponse;
 import com.asiczen.organization.services.organization.svcimpl.OrganizationServices;
-import org.springframework.stereotype.Service;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,17 +52,28 @@ public class OrganizationServicesImpl implements OrganizationServices {
         log.debug("Creating new organization.request details are as follows --> {}", request.toString());
         log.trace("Creating a user in keycloak with attributes firstname,lastname,email as userid and phone number");
 
-        /* Check if organization name is already taken */
-        Optional<Organization> checkOrg = orgRepo.findByorgRefName(request.getOrgRefName());
+        Organization organization = orgRepo.findByorgRefName(request.getOrgRefName())
+                .orElseThrow(() -> new ResourceAlreadyExistException("Organization Reference name is already taken: " + request.getOrgRefName()));
 
-        if (checkOrg.isPresent()) {
-            log.debug("Organization is already registered with organization reference name.Resorce already exist exception --> 409");
-            throw new ResourceAlreadyExistException("Org Reference name is already taken: " + request.getOrgRefName());
-        }
+        /* Save organization */
 
-        /* Create the First user for Organization */
+        Organization org = new Organization();
 
-        // restTemplate.postForEntity("", request, responseType)
+        org.setOrgRefName(request.getOrgRefName());
+        org.setOrgName(request.getOrgName());
+        org.setDescription(request.getDescription());
+        org.setStatus(true);
+        Organization savedOrg = orgRepo.saveAndFlush(org);
+
+        OrgParameters params = new OrgParameters();
+        params.setOrganization(savedOrg);
+        paramRepo.save(params);
+
+        return new OrganizationResponse("Organization registered successfully and Initial user is created.");
+
+    }
+
+    public void createUserInKeyCloak(@org.jetbrains.annotations.NotNull OrganizationOnBoard request, String token) {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -80,7 +91,7 @@ public class OrganizationServicesImpl implements OrganizationServices {
 
         HttpEntity<Object> requestEntity = new HttpEntity<>(requestBody, headers);
 
-        ResponseEntity<String> response = null;
+        ResponseEntity<String> response;
 
         try {
             response = restTemplate.postForEntity(baseUrl + "/createuser", requestEntity, String.class);
@@ -103,23 +114,6 @@ public class OrganizationServicesImpl implements OrganizationServices {
         } else if (response.getStatusCodeValue() == 409) {
             log.debug("user already registered in keyCloak");
         }
-
-        /* Save organization */
-
-        Organization org = new Organization();
-
-        org.setOrgRefName(request.getOrgRefName());
-        org.setOrgName(request.getOrgName());
-        org.setDescription(request.getDescription());
-        org.setStatus(true);
-        Organization savedOrg = orgRepo.saveAndFlush(org);
-
-        OrgParameters params = new OrgParameters();
-        params.setOrganization(savedOrg);
-        paramRepo.save(params);
-
-        return new OrganizationResponse("Organization registered successfully and Initial user is created.");
-
     }
 
     @Override
@@ -169,14 +163,14 @@ public class OrganizationServicesImpl implements OrganizationServices {
     @Override
     public Organization getOrganizationById(Long orgId) {
         return orgRepo.findByorgId(orgId)
-				.orElseThrow(() -> new ResourceNotFoundException("Organization doesn't exist with orgId " + orgId));
+                .orElseThrow(() -> new ResourceNotFoundException("Organization doesn't exist with orgId " + orgId));
 
     }
 
     @Override
     public Organization getOrgByRefName(String orgRefName) {
-      return orgRepo.findByorgRefName(orgRefName)
-			  .orElseThrow(() -> new ResourceNotFoundException("Organization doesn't exist with organization reference name"));
+        return orgRepo.findByorgRefName(orgRefName)
+                .orElseThrow(() -> new ResourceNotFoundException("Organization doesn't exist with organization reference name"));
     }
 
     @Override

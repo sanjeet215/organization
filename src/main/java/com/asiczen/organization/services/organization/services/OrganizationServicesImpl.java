@@ -10,6 +10,7 @@ import com.asiczen.organization.services.organization.repository.OrgParamsReposi
 import com.asiczen.organization.services.organization.repository.OrganizationRepository;
 import com.asiczen.organization.services.organization.request.OrganizationOnBoard;
 import com.asiczen.organization.services.organization.request.OrganizationUpdateRequest;
+import com.asiczen.organization.services.organization.response.DeleteResponse;
 import com.asiczen.organization.services.organization.response.OrganizationResponse;
 import com.asiczen.organization.services.organization.response.UpdateOrganizationResponse;
 import com.asiczen.organization.services.organization.svcimpl.OrganizationServices;
@@ -197,5 +198,11 @@ public class OrganizationServicesImpl implements OrganizationServices {
         } else {
             throw new ResourceNotFoundException("Organization not found by supplied id");
         }
+    }
+
+    @Override
+    public DeleteResponse deleteOrganizationByOrgId(Long orgId) {
+        orgRepo.findByorgId(orgId).ifPresentOrElse(organization -> orgRepo.delete(organization), () -> new ResourceNotFoundException("Invalid organization id."));
+        return new DeleteResponse("Organization deleted successfully.");
     }
 }

@@ -33,8 +33,7 @@ public class OrganizationController {
 
     @PostMapping("/org")
     @ResponseStatus(HttpStatus.CREATED)
-    public OrganizationResponse createOrganization(@Valid @RequestBody OrganizationOnBoard request,
-                                                   @RequestHeader String authorization) {
+    public OrganizationResponse createOrganization(@Valid @RequestBody OrganizationOnBoard request, @RequestHeader String authorization) {
 
         log.trace("Create organization method is invoked. --> {} ", request.toString());
         return orgService.postNewOrganization(request, authorization);
@@ -70,13 +69,13 @@ public class OrganizationController {
 
     @GetMapping("/org/{orgid}")
     @ResponseStatus(HttpStatus.OK)
-    public Organization getOrganizationById(@Valid @PathVariable Long orgid) {
+    public Organization getOrganizationById(@Valid @PathVariable("orgid") Long orgid) {
         return orgService.getOrganizationById(orgid);
     }
 
     @GetMapping("/org/orgref/{orgRefName}")
     @ResponseStatus(HttpStatus.OK)
-    public Organization getOrganizationByOrgReferenceName(@Valid @PathVariable String orgRefName) {
+    public Organization getOrganizationByOrgReferenceName(@Valid @PathVariable("orgRefName") String orgRefName) {
         return orgService.getOrgByRefName(orgRefName);
     }
 
@@ -84,7 +83,7 @@ public class OrganizationController {
     @GetMapping("/org/count")
     @ResponseStatus(HttpStatus.OK)
     public CountResponse getOrganizationCount() {
-        return new CountResponse(orgService.getOrganizationCount(),"count extracted successfully.");
+        return new CountResponse(orgService.getOrganizationCount(), "count extracted successfully.");
     }
 
     @PostMapping("/org/param")
@@ -102,9 +101,14 @@ public class OrganizationController {
 
     @GetMapping("/org/param/{orgid}")
     @ResponseStatus(HttpStatus.OK)
-    public OrgParameters getMyOrganizationParametersById(@Valid @PathVariable Long orgid) {
+    public OrgParameters getMyOrganizationParametersById(@Valid @PathVariable("orgid") Long orgid) {
         log.info("Received --------------------------------------->: {}", orgid);
         return orgParamServices.getMyOrganizationParameters(orgid);
     }
 
+    @DeleteMapping("/org/{orgid}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public DeleteResponse deleteOrganizationbyId(@Valid @PathVariable("orgid") Long orgid) {
+        return orgService.deleteOrganizationByOrgId(orgid);
+    }
 }

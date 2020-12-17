@@ -4,6 +4,7 @@ package com.asiczen.organization.services.organization.svcimpl;
 import com.asiczen.organization.services.organization.model.Organization;
 import com.asiczen.organization.services.organization.request.OrganizationOnBoard;
 import com.asiczen.organization.services.organization.request.OrganizationUpdateRequest;
+import com.asiczen.organization.services.organization.response.DeleteResponse;
 import com.asiczen.organization.services.organization.response.OrganizationResponse;
 import com.asiczen.organization.services.organization.response.UpdateOrganizationResponse;
 import org.springframework.stereotype.Service;
@@ -28,4 +29,6 @@ public interface OrganizationServices {
 	public String validateOrganizationReferenceName(String orgReferenceName);
 	
 	public Organization disableOrganization(Long orgId, boolean status);
+
+	public DeleteResponse deleteOrganizationByOrgId(Long orgId);
 }

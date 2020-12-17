@@ -1,0 +1,62 @@
+server:
+  port: 7001
+
+spring:
+  application:
+    name: fleet-service
+
+  output:
+    ansi:
+      enabled: DETECT
+
+  datasource:
+    url: jdbc:mysql://0.0.0.0:3306/organization
+    username: root
+    password: password
+    dbcp2:
+      validation-query: SELECT 1
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+        format_sql: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/auth/realms/asiczen-fleet
+      client:
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8080/auth/realms/asiczen-fleet
+            user-name-attribute: preferred_username
+  cache:
+    jcache:
+      config: classpath:ehcache.xml
+
+keycloak:
+  realm: asiczen-fleet
+  auth-server-url: http://localhost:8080/auth
+  ssl-required: external
+  resource: springboot-microservice
+  use-resource-role-mappings: true
+  bearer-only: true
+  credentials:
+    secret: d69e0013-b806-4ee1-82e3-290796d71266
+  cors: false
+
+logging:
+  level:
+    #root: ERROR
+    org.springframework.web: ERROR
+    org.springframework.security: ERROR
+    com.asiczen: ERROR
+  file:
+    name: D:\log-files\Fleet-Management.log
+    max-size: 10 MB
+
+BASEURL: http://localhost:8081/api/user/

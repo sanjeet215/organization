@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping("/api/fleet")
+@RequestMapping("/api/service")
 @Slf4j
 @PreAuthorize("hasRole('ROLE_ADMIN')")
 public class OrganizationController {
@@ -108,7 +108,7 @@ public class OrganizationController {
 
     @DeleteMapping("/org/{orgid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public DeleteResponse deleteOrganizationbyId(@Valid @PathVariable("orgid") Long orgid) {
+    public DeleteResponse deleteOrganizationById(@Valid @PathVariable("orgid") Long orgid) {
         return orgService.deleteOrganizationByOrgId(orgid);
     }
 }

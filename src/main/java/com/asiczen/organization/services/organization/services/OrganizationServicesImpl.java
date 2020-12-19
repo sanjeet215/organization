@@ -53,8 +53,10 @@ public class OrganizationServicesImpl implements OrganizationServices {
         log.debug("Creating new organization.request details are as follows --> {}", request.toString());
         log.trace("Creating a user in keycloak with attributes firstname,lastname,email as userid and phone number");
 
-        Organization organization = orgRepo.findByorgRefName(request.getOrgRefName())
-                .orElseThrow(() -> new ResourceAlreadyExistException("Organization Reference name is already taken: " + request.getOrgRefName()));
+        if(orgRepo.findByorgRefName(request.getOrgRefName()).isPresent()) {
+            throw new ResourceAlreadyExistException("Organization Reference name is already taken: " + request.getOrgRefName());
+        }
+
 
         /* Save organization */
 

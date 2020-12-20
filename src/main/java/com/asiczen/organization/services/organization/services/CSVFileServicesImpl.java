@@ -1,8 +1,10 @@
 package com.asiczen.organization.services.organization.services;
 
 import com.asiczen.organization.services.organization.dto.CSVData;
+import com.asiczen.organization.services.organization.model.ErrorTable;
 import com.asiczen.organization.services.organization.model.OrgParameters;
 import com.asiczen.organization.services.organization.model.Organization;
+import com.asiczen.organization.services.organization.repository.ErrorTableRepository;
 import com.asiczen.organization.services.organization.repository.OrgParamsRepository;
 import com.asiczen.organization.services.organization.repository.OrganizationRepository;
 import com.asiczen.organization.services.organization.request.OrgParamUpdateRequest;
@@ -18,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Optional;
 
@@ -35,6 +38,9 @@ public class CSVFileServicesImpl implements CsvFileServices {
 
     @Autowired
     OrgParamServicesImpl orgParamServices;
+
+    @Autowired
+    ErrorTableRepository errorTableRepository;
 
     @Override
     public boolean isCSVFormattedFile(MultipartFile file) {
@@ -69,8 +75,10 @@ public class CSVFileServicesImpl implements CsvFileServices {
                 OrgParamUpdateRequest orgParamUpdateRequest = new OrgParamUpdateRequest();
                 setOrganizationParametersUpdateRequest(orgParamUpdateRequest, csvRecord, organization.get().getOrgId());
                 orgParamServices.updateOrganizationParameters(orgParamUpdateRequest);
+                generateErrorRecord(csvRecord, true, "Record is good.");
             } catch (Exception exception) {
                 log.error("Error while updating the record -> " + exception.getLocalizedMessage());
+                generateErrorRecord(csvRecord, false, exception.getLocalizedMessage());
             }
         } else {
             try {
@@ -83,15 +91,15 @@ public class CSVFileServicesImpl implements CsvFileServices {
                 newOrgParameters.setOrganization(newOrganization);
 
                 log.trace("saving record {} ", newOrganization.toString());
-
                 paramsRepository.save(newOrgParameters);
-
+                generateErrorRecord(csvRecord, true, "Record is good.");
                 log.trace("Organization record saved successfully.");
 
             } catch (Exception ep) {
                 log.error("Error while creating new data from file => " + ep.getLocalizedMessage());
                 log.error(ep.getLocalizedMessage());
                 ep.getStackTrace();
+                generateErrorRecord(csvRecord, false, ep.getLocalizedMessage());
             }
         }
 
@@ -172,12 +180,6 @@ public class CSVFileServicesImpl implements CsvFileServices {
             data.setOverUtilizedKms(0);
         }
 
-        if (csvRecord.get("orgRefName") != null) {
-            data.setOrgRefName(csvRecord.get("orgRefName"));
-        } else {
-            //Failure logic
-        }
-
         if (csvRecord.get("orgName") != null) {
             data.setOrgName(csvRecord.get("orgName"));
         } else {
@@ -196,8 +198,31 @@ public class CSVFileServicesImpl implements CsvFileServices {
             data.setStatus(false);
         }
 
+        if (csvRecord.get("orgRefName") != null) {
+            data.setOrgRefName(csvRecord.get("orgRefName"));
+        } else {
+            //Failure logic
+            generateErrorRecord(data, false, "Organization Reference Name can't be blank,please populate.");
+        }
         return data;
     }
 
+    private void generateErrorRecord(CSVData data, boolean status, String message) {
+        String actualRecord = getActualString(data.toString());
+        String errorMessage = getActualString(message);
+        ErrorTable error = new ErrorTable(actualRecord, LocalDateTime.now(), false, errorMessage);
+        errorTableRepository.save(error);
+    }
+
+    private String getActualString(String inputString) {
+        String response = "messaage";
+        int length = inputString.length();
+        if (length > 250) {
+            response = inputString.substring(0, 250);
+        } else {
+            response = inputString;
+        }
+        return response;
+    }
 
 }

@@ -1,6 +1,7 @@
 package com.asiczen.organization.services.organization.services;
 
 import com.asiczen.organization.services.organization.dto.CSVData;
+import com.asiczen.organization.services.organization.exception.InternalServerError;
 import com.asiczen.organization.services.organization.model.ErrorTable;
 import com.asiczen.organization.services.organization.model.OrgParameters;
 import com.asiczen.organization.services.organization.model.Organization;
@@ -10,19 +11,17 @@ import com.asiczen.organization.services.organization.repository.OrganizationRep
 import com.asiczen.organization.services.organization.request.OrgParamUpdateRequest;
 import com.asiczen.organization.services.organization.svcimpl.CsvFileServices;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.csv.*;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -63,6 +62,31 @@ public class CSVFileServicesImpl implements CsvFileServices {
             log.error("Error while reading the file");
             log.error(ep.getLocalizedMessage());
         }
+    }
+
+    @Override
+    public ByteArrayInputStream downloadOrganizationData(String token) {
+
+        final CSVFormat format = CSVFormat.DEFAULT.withQuoteMode(QuoteMode.MINIMAL);
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             CSVPrinter csvPrinter = new CSVPrinter(new PrintWriter(out), format);) {
+            csvPrinter.printRecords(organizationRepository.findAll().stream().map(record -> convertToData(record)).collect(Collectors.toList()));
+            csvPrinter.flush();
+            return new ByteArrayInputStream(out.toByteArray());
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new InternalServerError("Some IO error while downloading the file.");
+        } catch (Exception e) {
+            throw new InternalServerError("Some error while downloading the file.");
+        }
+    }
+
+    private CSVData convertToData(Organization organization) {
+
+        CSVData data = new CSVData();
+        BeanUtils.copyProperties(organization, data);
+        return data;
     }
 
     void saveToDatabase(CSVData csvRecord) {

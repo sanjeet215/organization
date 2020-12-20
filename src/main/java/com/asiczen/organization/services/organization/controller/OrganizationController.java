@@ -2,6 +2,7 @@ package com.asiczen.organization.services.organization.controller;
 
 
 import com.asiczen.organization.services.organization.exception.FileUploadException;
+import com.asiczen.organization.services.organization.model.ErrorTable;
 import com.asiczen.organization.services.organization.model.OrgParameters;
 import com.asiczen.organization.services.organization.model.Organization;
 import com.asiczen.organization.services.organization.request.OrgParamCreateRequest;
@@ -10,11 +11,16 @@ import com.asiczen.organization.services.organization.request.OrganizationOnBoar
 import com.asiczen.organization.services.organization.request.OrganizationUpdateRequest;
 import com.asiczen.organization.services.organization.response.*;
 import com.asiczen.organization.services.organization.svcimpl.CsvFileServices;
+import com.asiczen.organization.services.organization.svcimpl.ErrorTableServices;
 import com.asiczen.organization.services.organization.svcimpl.OrgParamServices;
 import com.asiczen.organization.services.organization.svcimpl.OrganizationServices;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.service.ResponseMessage;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/service")
@@ -37,6 +44,9 @@ public class OrganizationController {
 
     @Autowired
     CsvFileServices csvFileServices;
+
+    @Autowired
+    ErrorTableServices errorTableServices;
 
     @PostMapping("/org")
     @ResponseStatus(HttpStatus.CREATED)
@@ -121,13 +131,44 @@ public class OrganizationController {
 
     @PostMapping("/org/upload")
     @ResponseStatus(HttpStatus.OK)
-    public FileUploadResponse uploadFile(@RequestParam("file") MultipartFile file) {
+    public FileUploadResponse uploadFile(@RequestParam("file") MultipartFile file, @RequestHeader String authorization) {
 
-        if(csvFileServices.isCSVFormattedFile(file)){
+        if (csvFileServices.isCSVFormattedFile(file)) {
             throw new FileUploadException("Invalid file format. please check the format");
         }
-         csvFileServices.uploadOrganizationData(file);
+        csvFileServices.uploadOrganizationData(file);
 
         return new FileUploadResponse("File uploaded successfully.");
+    }
+
+
+    @GetMapping("/org/download")
+    public ResponseEntity<Resource> downloadFile(@RequestHeader String authorization) {
+
+        String filename = "organization.csv";
+
+        InputStreamResource file = new InputStreamResource(csvFileServices.downloadOrganizationData(authorization));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.parseMediaType("application/csv"))
+                .body(file);
+    }
+
+    @GetMapping("/org/orgrefname")
+    public ResponseEntity<ApiResponse> getListOfOrganizationReferenceNames(@RequestHeader String authorization) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse(HttpStatus.OK.value(), "List extracted.", orgService.getAllOrganizationRefName(authorization)));
+    }
+
+    @GetMapping("/org/error")
+    public ResponseEntity<ApiResponse> getErrorListForOrganizationFileUpload(@RequestHeader String authorization) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse(HttpStatus.OK.value(), "Errors extracted.", errorTableServices.getAllErrorDetails()));
+    }
+
+    @GetMapping("/org/errorflag")
+    public ResponseEntity<ApiResponse> getErrorListForOrganizationFileUpload(@Valid @RequestParam boolean status, @RequestHeader String authorization) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse(HttpStatus.OK.value(), "Errors extracted.", errorTableServices.getAllErrorDetailsWithFlag(status)));
     }
 }

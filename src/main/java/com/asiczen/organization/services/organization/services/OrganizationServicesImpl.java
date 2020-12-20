@@ -11,6 +11,7 @@ import com.asiczen.organization.services.organization.repository.OrganizationRep
 import com.asiczen.organization.services.organization.request.OrganizationOnBoard;
 import com.asiczen.organization.services.organization.request.OrganizationUpdateRequest;
 import com.asiczen.organization.services.organization.response.DeleteResponse;
+import com.asiczen.organization.services.organization.response.OrgRefNameId;
 import com.asiczen.organization.services.organization.response.OrganizationResponse;
 import com.asiczen.organization.services.organization.response.UpdateOrganizationResponse;
 import com.asiczen.organization.services.organization.svcimpl.OrganizationServices;
@@ -53,7 +54,7 @@ public class OrganizationServicesImpl implements OrganizationServices {
         log.debug("Creating new organization.request details are as follows --> {}", request.toString());
         log.trace("Creating a user in keycloak with attributes firstname,lastname,email as userid and phone number");
 
-        if(orgRepo.findByorgRefName(request.getOrgRefName()).isPresent()) {
+        if (orgRepo.findByorgRefName(request.getOrgRefName()).isPresent()) {
             throw new ResourceAlreadyExistException("Organization Reference name is already taken: " + request.getOrgRefName());
         }
 
@@ -205,5 +206,10 @@ public class OrganizationServicesImpl implements OrganizationServices {
     public DeleteResponse deleteOrganizationByOrgId(Long orgId) {
         orgRepo.findByorgId(orgId).ifPresentOrElse(organization -> orgRepo.delete(organization), () -> new ResourceNotFoundException("Invalid organization id."));
         return new DeleteResponse("Organization deleted successfully.");
+    }
+
+    @Override
+    public List<OrgRefNameId> getAllOrganizationRefName(String token) {
+        return orgRepo.findAll().stream().map(record -> new OrgRefNameId(record.getOrgRefName(), record.getOrgId())).collect(Collectors.toList());
     }
 }

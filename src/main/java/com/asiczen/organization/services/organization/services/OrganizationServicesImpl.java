@@ -59,17 +59,16 @@ public class OrganizationServicesImpl implements OrganizationServices {
 
 
         /* Save organization */
-
         Organization org = new Organization();
 
         org.setOrgRefName(request.getOrgRefName());
         org.setOrgName(request.getOrgName());
         org.setDescription(request.getDescription());
         org.setStatus(true);
-        Organization savedOrg = orgRepo.saveAndFlush(org);
+        //Organization savedOrg = orgRepo.saveAndFlush(org);
 
         OrgParameters params = new OrgParameters();
-        params.setOrganization(savedOrg);
+        params.setOrganization(org);
         paramRepo.save(params);
 
         return new OrganizationResponse("Organization registered successfully and Initial user is created.");

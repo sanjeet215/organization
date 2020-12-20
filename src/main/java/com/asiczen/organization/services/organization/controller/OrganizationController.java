@@ -1,6 +1,7 @@
 package com.asiczen.organization.services.organization.controller;
 
 
+import com.asiczen.organization.services.organization.exception.FileUploadException;
 import com.asiczen.organization.services.organization.model.OrgParameters;
 import com.asiczen.organization.services.organization.model.Organization;
 import com.asiczen.organization.services.organization.request.OrgParamCreateRequest;
@@ -8,6 +9,7 @@ import com.asiczen.organization.services.organization.request.OrgParamUpdateRequ
 import com.asiczen.organization.services.organization.request.OrganizationOnBoard;
 import com.asiczen.organization.services.organization.request.OrganizationUpdateRequest;
 import com.asiczen.organization.services.organization.response.*;
+import com.asiczen.organization.services.organization.svcimpl.CsvFileServices;
 import com.asiczen.organization.services.organization.svcimpl.OrgParamServices;
 import com.asiczen.organization.services.organization.svcimpl.OrganizationServices;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import springfox.documentation.service.ResponseMessage;
 
 import javax.validation.Valid;
 
@@ -30,6 +34,9 @@ public class OrganizationController {
 
     @Autowired
     OrgParamServices orgParamServices;
+
+    @Autowired
+    CsvFileServices csvFileServices;
 
     @PostMapping("/org")
     @ResponseStatus(HttpStatus.CREATED)
@@ -110,5 +117,17 @@ public class OrganizationController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public DeleteResponse deleteOrganizationById(@Valid @PathVariable("orgid") Long orgid) {
         return orgService.deleteOrganizationByOrgId(orgid);
+    }
+
+    @PostMapping("/org/upload")
+    @ResponseStatus(HttpStatus.OK)
+    public FileUploadResponse uploadFile(@RequestParam("file") MultipartFile file) {
+
+        if(csvFileServices.isCSVFormattedFile(file)){
+            throw new FileUploadException("Invalid file format. please check the format");
+        }
+         csvFileServices.uploadOrganizationData(file);
+
+        return new FileUploadResponse("File uploaded successfully.");
     }
 }

@@ -16,7 +16,7 @@ spring:
     dbcp2:
       validation-query: SELECT 1
   jpa:
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: update
     properties:

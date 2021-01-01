@@ -70,7 +70,9 @@ public class CSVFileServicesImpl implements CsvFileServices {
         final CSVFormat format = CSVFormat.DEFAULT.withQuoteMode(QuoteMode.MINIMAL);
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
              CSVPrinter csvPrinter = new CSVPrinter(new PrintWriter(out), format);) {
-            csvPrinter.printRecords(organizationRepository.findAll().stream().map(record -> convertToData(record)).collect(Collectors.toList()));
+            String header = "orgRefName,orgName,Description,status,overSpeedLimit,underSpeedLimit,fuelLimit,underUtilizedHours,overUtilizedHours,underUtilizedKms,overUtilizedKms";
+            csvPrinter.printRecords(header);
+            organizationRepository.findAll().stream().map(record -> convertToData(record)).forEach(record -> writeToFile(csvPrinter, record));
             csvPrinter.flush();
             return new ByteArrayInputStream(out.toByteArray());
 
@@ -81,6 +83,18 @@ public class CSVFileServicesImpl implements CsvFileServices {
             throw new InternalServerError("Some error while downloading the file.");
         }
     }
+
+    private void writeToFile(CSVPrinter csvPrinter, CSVData record) {
+
+        try {
+            String data = record.getOrgName() + "," + record.getOrgName() + "," + record.getDescription() + "," + record.isStatus() + "," + record.getOverSpeedLimit() + "," + record.getUnderSpeedLimit() + "," + record.getFuelLimit() + "," +
+                    record.getOverUtilizedHours() + "," + record.getUnderUtilizedHours() + "," + record.getUnderUtilizedKms() + "," + record.getOverUtilizedKms();
+            csvPrinter.printRecords(data);
+        } catch (Exception exception) {
+            log.error("Not able to write data into file.");
+        }
+    }
+
 
     private CSVData convertToData(Organization organization) {
 

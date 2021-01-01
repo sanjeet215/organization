@@ -28,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.service.ResponseMessage;
 
 import javax.validation.Valid;
+import java.io.InputStream;
 import java.util.List;
 
 @RestController
@@ -143,14 +144,16 @@ public class OrganizationController {
 
 
     @GetMapping("/org/download")
-    public ResponseEntity<Resource> downloadFile(@RequestHeader String authorization) {
+    public ResponseEntity<Resource> downloadFile() {
 
         String filename = "organization.csv";
+        String authorization = "test";
+
 
         InputStreamResource file = new InputStreamResource(csvFileServices.downloadOrganizationData(authorization));
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-                .contentType(MediaType.parseMediaType("application/csv"))
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(file);
     }
 

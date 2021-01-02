@@ -26,5 +26,7 @@ COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
 COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
 
+EXPOSE 7002
+
 # Run the Spring boot application
 ENTRYPOINT ["java", "-cp", "app:app/lib/*","com.asiczen.organization.services.organization.OrganizationApplication"]

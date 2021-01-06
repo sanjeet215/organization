@@ -58,6 +58,7 @@ public class OrganizationServicesImpl implements OrganizationServices {
             throw new ResourceAlreadyExistException("Organization Reference name is already taken: " + request.getOrgRefName());
         }
 
+        createUserInKeyCloak(request, token);
 
         /* Save organization */
         Organization org = new Organization();
@@ -66,7 +67,6 @@ public class OrganizationServicesImpl implements OrganizationServices {
         org.setOrgName(request.getOrgName());
         org.setDescription(request.getDescription());
         org.setStatus(true);
-        //Organization savedOrg = orgRepo.saveAndFlush(org);
 
         OrgParameters params = new OrgParameters();
         params.setOrganization(org);
@@ -76,7 +76,7 @@ public class OrganizationServicesImpl implements OrganizationServices {
 
     }
 
-    public void createUserInKeyCloak(@org.jetbrains.annotations.NotNull OrganizationOnBoard request, String token) {
+    public void createUserInKeyCloak(OrganizationOnBoard request, String token) {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -109,6 +109,7 @@ public class OrganizationServicesImpl implements OrganizationServices {
         } catch (HttpClientErrorException.Unauthorized ep) {
             throw new AccessisDeniedException("Access is denied");
         } catch (Exception ep) {
+            log.error("Error occurred : {}", ep.getLocalizedMessage());
             throw new InternalServerError(ep.getLocalizedMessage());
         }
 
@@ -120,8 +121,11 @@ public class OrganizationServicesImpl implements OrganizationServices {
     }
 
     @Override
-    public List<Organization> getAllOrgnizations() {
-        return orgRepo.findAll().stream().sorted(Comparator.comparing(Organization::getUpdatedAt))
+    public List<Organization> getAllOrganizations() {
+
+        List<Organization> response = orgRepo.findAll();
+
+        return response.stream().sorted(Comparator.comparing(Organization::getUpdatedAt))
                 .collect(Collectors.toList());
     }
 

@@ -69,7 +69,7 @@ public class OrganizationController {
     @GetMapping("/org")
     public ResponseEntity<ApiResponse> getAllOrganizations() {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse(HttpStatus.OK.value(),
-                "Organization List Extracted Successfully", orgService.getAllOrgnizations()));
+                "Organization List Extracted Successfully", orgService.getAllOrganizations()));
     }
 
     @GetMapping("/org/validate")
@@ -144,11 +144,9 @@ public class OrganizationController {
 
 
     @GetMapping("/org/download")
-    public ResponseEntity<Resource> downloadFile() {
+    public ResponseEntity<Resource> downloadFile(@RequestHeader String authorization) {
 
         String filename = "organization.csv";
-        String authorization = "test";
-
 
         InputStreamResource file = new InputStreamResource(csvFileServices.downloadOrganizationData(authorization));
         return ResponseEntity.ok()

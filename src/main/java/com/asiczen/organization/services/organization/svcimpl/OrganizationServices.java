@@ -17,7 +17,7 @@ public interface OrganizationServices {
 
     public OrganizationResponse postNewOrganization(OrganizationOnBoard request, String token);
 
-    public List<Organization> getAllOrgnizations();
+    public List<Organization> getAllOrganizations();
 
     public UpdateOrganizationResponse updateOrganization(OrganizationUpdateRequest request);
 

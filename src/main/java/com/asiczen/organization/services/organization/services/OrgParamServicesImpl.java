@@ -29,7 +29,7 @@ public class OrgParamServicesImpl implements OrgParamServices {
 
         orgParamRepo.findByparamId(request.getOrgId()).orElseThrow(() -> new ResourceNotFoundException("Invalid Organization id, please choose a correct id."));
 
-        if (request != null && request.getOrgId() != null) {
+        if (request.getOrgId() != null) {
             BeanUtils.copyProperties(request, orgParameters);
             orgParameters.setParamId(request.getOrgId());
 

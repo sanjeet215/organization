@@ -34,7 +34,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/service")
 @Slf4j
-@PreAuthorize("hasRole('ROLE_ADMIN')")
 public class OrganizationController {
 
     @Autowired
@@ -51,6 +50,7 @@ public class OrganizationController {
 
     @PostMapping("/org")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ROLE_SUPERADMIN')")
     public OrganizationResponse createOrganization(@Valid @RequestBody OrganizationOnBoard request, @RequestHeader String authorization) {
 
         log.trace("Create organization method is invoked. --> {} ", request.toString());
@@ -59,6 +59,7 @@ public class OrganizationController {
 
     @PutMapping("/org")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('ROLE_SUPERADMIN','ROLE_ADMIN')")
     public UpdateOrganizationResponse updateOrganization(@Valid @RequestBody OrganizationUpdateRequest updateRequest) {
 
         log.debug("Updating organization, parameters are --> {} ", updateRequest.toString());
@@ -67,12 +68,14 @@ public class OrganizationController {
     }
 
     @GetMapping("/org")
+    @PreAuthorize("hasRole('ROLE_SUPERADMIN')")
     public ResponseEntity<ApiResponse> getAllOrganizations() {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse(HttpStatus.OK.value(),
                 "Organization List Extracted Successfully", orgService.getAllOrganizations()));
     }
 
     @GetMapping("/org/validate")
+    @PreAuthorize("hasRole('ROLE_SUPERADMIN')")
     public ResponseEntity<ApiResponse> validateOrganization(@Valid @RequestParam String orgReferenceName) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ApiResponse(HttpStatus.OK.value(), "Organization " + orgReferenceName + " valiated",
@@ -80,6 +83,7 @@ public class OrganizationController {
     }
 
     @PutMapping("/org/disable")
+    @PreAuthorize("hasRole('ROLE_SUPERADMIN')")
     public ResponseEntity<ApiResponse> updateStatus(@Valid @RequestParam boolean status, @Valid @RequestParam Long orgId) {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse(HttpStatus.OK.value(),
                 "Status of organization: " + orgId + " is updated", orgService.disableOrganization(orgId, status)));
@@ -87,12 +91,14 @@ public class OrganizationController {
 
     @GetMapping("/org/{orgid}")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('ROLE_SUPERADMIN','ROLE_ADMIN')") // both
     public Organization getOrganizationById(@Valid @PathVariable("orgid") Long orgid) {
         return orgService.getOrganizationById(orgid);
     }
 
     @GetMapping("/org/orgref/{orgRefName}")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('ROLE_SUPERADMIN','ROLE_ADMIN')") //both
     public Organization getOrganizationByOrgReferenceName(@Valid @PathVariable("orgRefName") String orgRefName) {
         return orgService.getOrgByRefName(orgRefName);
     }
@@ -100,18 +106,21 @@ public class OrganizationController {
 
     @GetMapping("/org/count")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasRole('ROLE_SUPERADMIN')")
     public CountResponse getOrganizationCount() {
         return new CountResponse(orgService.getOrganizationCount(), "count extracted successfully.");
     }
 
     @PostMapping("/org/param")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('ROLE_SUPERADMIN','ROLE_ADMIN')")
     public OrganizationPraramSaveUpdResponse postOrganizationParameters(@Valid @RequestBody OrgParamCreateRequest request) {
         return orgParamServices.saveOrganizationParameters(request);
     }
 
     @PutMapping("/org/param")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('ROLE_SUPERADMIN','ROLE_ADMIN')")
     public OrganizationPraramSaveUpdResponse updateOrganizationParameters(@Valid @RequestBody OrgParamUpdateRequest request) {
         log.error("Request --> {}", request.getOrgid());
         return orgParamServices.updateOrganizationParameters(request);
@@ -119,6 +128,7 @@ public class OrganizationController {
 
     @GetMapping("/org/param/{orgid}")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('ROLE_SUPERADMIN','ROLE_ADMIN')")
     public OrgParameters getMyOrganizationParametersById(@Valid @PathVariable("orgid") Long orgid) {
         log.info("Received --------------------------------------->: {}", orgid);
         return orgParamServices.getMyOrganizationParameters(orgid);
@@ -126,12 +136,14 @@ public class OrganizationController {
 
     @DeleteMapping("/org/{orgid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ROLE_SUPERADMIN')")
     public DeleteResponse deleteOrganizationById(@Valid @PathVariable("orgid") Long orgid) {
         return orgService.deleteOrganizationByOrgId(orgid);
     }
 
     @PostMapping("/org/upload")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasRole('ROLE_SUPERADMIN')")
     public FileUploadResponse uploadFile(@RequestParam("file") MultipartFile file, @RequestHeader String authorization) {
 
         if (csvFileServices.isCSVFormattedFile(file)) {
@@ -144,6 +156,7 @@ public class OrganizationController {
 
 
     @GetMapping("/org/download")
+    @PreAuthorize("hasRole('ROLE_SUPERADMIN')")
     public ResponseEntity<Resource> downloadFile(@RequestHeader String authorization) {
 
         String filename = "organization.csv";
@@ -156,18 +169,21 @@ public class OrganizationController {
     }
 
     @GetMapping("/org/orgrefname")
+    @PreAuthorize("hasRole('ROLE_SUPERADMIN')")
     public ResponseEntity<ApiResponse> getListOfOrganizationReferenceNames(@RequestHeader String authorization) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ApiResponse(HttpStatus.OK.value(), "List extracted.", orgService.getAllOrganizationRefName(authorization)));
     }
 
     @GetMapping("/org/error")
+    @PreAuthorize("hasRole('ROLE_SUPERADMIN')")
     public ResponseEntity<ApiResponse> getErrorListForOrganizationFileUpload(@RequestHeader String authorization) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ApiResponse(HttpStatus.OK.value(), "Errors extracted.", errorTableServices.getAllErrorDetails()));
     }
 
     @GetMapping("/org/errorflag")
+    @PreAuthorize("hasRole('ROLE_SUPERADMIN')")
     public ResponseEntity<ApiResponse> getErrorListForOrganizationFileUpload(@Valid @RequestParam boolean status, @RequestHeader String authorization) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ApiResponse(HttpStatus.OK.value(), "Errors extracted.", errorTableServices.getAllErrorDetailsWithFlag(status)));

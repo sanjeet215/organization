@@ -86,7 +86,7 @@ public class OrganizationController {
     @PreAuthorize("hasRole('ROLE_SUPERADMIN')")
     public ResponseEntity<ApiResponse> updateStatus(@Valid @RequestParam boolean status, @Valid @RequestParam Long orgId) {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse(HttpStatus.OK.value(),
-                "Status of organization: " + orgId + " is updated", orgService.disableOrganization(orgId, status)));
+                "Status of organization: " + orgService.getOrganizationById(orgId).getOrgName() + " is updated", orgService.disableOrganization(orgId, status)));
     }
 
     @GetMapping("/org/{orgid}")
